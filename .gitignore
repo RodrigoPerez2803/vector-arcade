@@ -1,0 +1,4 @@
+# Only the games/ folder is published to GitHub. Everything else stays on this computer.
+/*
+!/games/
+!/.gitignore

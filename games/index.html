@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0c0c13">
+  <title>Vector Arcade — Browser games</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+    :root{color-scheme:dark;--bg:#0c0c13;--panel:#15151f;--line:#ffffff20;--text:#f5f3ff;--muted:#a4a1b6;--lime:#e4f66a;--pink:#ff4fa3;--mint:#46f0d0}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);background:radial-gradient(ellipse at 50% -12%,#29213c 0,transparent 55%),var(--bg);font-family:'DM Mono',monospace}
+    main{width:min(1060px,calc(100% - 40px));margin:auto;padding:48px 0 56px}.topline{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:10px;letter-spacing:2px;text-transform:uppercase}.logo{color:var(--text);font:700 20px 'Barlow Condensed',Impact,sans-serif;letter-spacing:2px}.logo i{color:var(--lime);font-style:normal}.hero{padding:78px 0 48px;max-width:700px}.eyebrow{color:var(--mint);font-size:10px;letter-spacing:4px;text-transform:uppercase}h1{margin:14px 0 14px;font:800 clamp(56px,10vw,96px)/.82 'Barlow Condensed',Impact,sans-serif;letter-spacing:-1px;text-transform:uppercase}h1 span{color:var(--lime)}.intro{max-width:530px;color:#c5c2d2;font-size:12px;line-height:1.9}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px}.card{--accent:var(--mint);position:relative;display:flex;min-height:330px;flex-direction:column;overflow:hidden;padding:25px;background:linear-gradient(145deg,#ffffff08,transparent 50%),var(--panel);border:1px solid var(--line);transition:transform .2s,border-color .2s,box-shadow .2s}.card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--accent) 70%,transparent);box-shadow:0 16px 50px #0007}.card[data-theme="pink"]{--accent:var(--pink)}.card:before{position:absolute;content:'';height:3px;inset:0 0 auto;background:var(--accent);box-shadow:0 0 20px var(--accent)}.card-top{display:flex;justify-content:space-between;align-items:center;color:var(--accent);font-size:9px;letter-spacing:2px}.number{opacity:.7}.art{height:132px;display:grid;place-items:center;font-size:78px;filter:drop-shadow(0 0 24px color-mix(in srgb,var(--accent) 45%,transparent))}.art span{transform:rotate(-8deg)}h2{margin:2px 0 6px;font:700 34px/.95 'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:1px}.description{margin:0 0 22px;color:var(--muted);font-size:10px;line-height:1.8}.launch{margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding:13px 15px;background:var(--accent);color:#111019;text-decoration:none;font-size:10px;font-weight:500;letter-spacing:1px;text-transform:uppercase}.launch:hover{filter:brightness(1.1)}.launch b{font-size:18px}.footer{margin-top:25px;padding-top:16px;border-top:1px solid var(--line);color:#6f6d7f;font-size:9px;letter-spacing:1px}.count{color:var(--lime)}
+    @media(max-width:600px){main{width:min(100% - 28px,500px);padding-top:26px}.hero{padding:60px 0 32px}.card{min-height:310px;padding:20px}.art{height:112px}}
+  </style>
+</head>
+<body>
+  <main>
+    <header class="topline"><div class="logo">VECTOR <i>ARCADE</i></div><div>PICK · PLAY · REPEAT</div></header>
+    <section class="hero"><div class="eyebrow">Portfolio · Browser games</div><h1>What are you<br><span>playing today?</span></h1><p class="intro">Three games that run straight in your browser, built with HTML, CSS and JavaScript and no libraries: every graphic is drawn on canvas, and the music and sound effects are synthesised live with the Web Audio API. Play with a keyboard or a gamepad.</p></section>
+    <section class="grid" id="games" aria-label="Available games"></section>
+    <footer class="footer"><span id="gameCount" class="count">0 GAMES</span> · <a href="https://github.com/RodrigoPerez2803/vector-arcade" style="color:inherit">VIEW THE CODE ON GITHUB</a></footer>
+  </main>
+  <script src="games.js"></script>
+  <script>
+    const games = window.ARCADE_GAMES || [];
+    const grid = document.querySelector('#games');
+    for (const [index, game] of games.entries()) {
+      const card = document.createElement('article');
+      card.className = 'card';
+      if (game.theme === 'pink') card.dataset.theme = 'pink';
+      card.innerHTML = `<div class="card-top"><span>${game.genre}</span><span class="number">${String(index + 1).padStart(2, '0')}</span></div><div class="art" aria-hidden="true"><span>${game.emoji}</span></div><h2>${game.name}</h2><p class="description">${game.description}</p><a class="launch" href="${game.url}"><span>Play now</span><b>↗</b></a>`;
+      grid.append(card);
+    }
+    document.querySelector('#gameCount').textContent = `${games.length} ${games.length === 1 ? 'GAME' : 'GAMES'}`;
+  </script>
+</body>
+</html>

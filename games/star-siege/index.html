@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#05060f">
+  <title>Star Siege — Vector Arcade</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow+Condensed:wght@600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+    :root{--ink:#05060f;--text:#f2f0ff;--muted:#a5a2bd;--mint:#46f0d0;--pink:#ff4fa3;--lime:#e4f66a;--gold:#ffd166}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'DM Mono',monospace;user-select:none;-webkit-user-select:none;touch-action:none}
+    #wrap{width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#1a1440,#05060f 72%)}
+    #screen{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);overflow:hidden;box-shadow:0 0 80px #000}
+    #game{display:block;width:100%;height:100%}
+    #screen.playing #game{cursor:none}
+    .overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:#05060fcc;backdrop-filter:blur(3px);overflow:auto}
+    .overlay[hidden]{display:none}
+    .panel{position:relative;width:min(640px,96%);padding:30px 36px 26px;border-radius:22px;background:linear-gradient(150deg,rgba(40,30,95,.72),rgba(8,9,26,.86) 70%);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);box-shadow:0 0 50px #46f0d01a,0 30px 90px #000c}
+    .panel:before{content:'';position:absolute;inset:-1px;border-radius:22px;padding:1px;background:linear-gradient(135deg,#46f0d0aa,transparent 40%,#c86bff88);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+    .panel.wide{width:min(1060px,98%);display:grid;grid-template-columns:1fr 1.05fr;gap:30px;padding:26px 30px}
+    .eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--mint)}
+    h1{margin:12px 0 10px;font:900 clamp(46px,6.6vw,84px)/.8 'Chakra Petch','Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:-1px}
+    h1 span{color:var(--lime);text-shadow:0 0 26px #e4f66a55}
+    h2{margin:10px 0 8px;font:900 clamp(40px,6vw,64px)/.85 'Chakra Petch','Barlow Condensed',Impact,sans-serif;text-transform:uppercase}
+    h3{margin:0 0 8px;font:800 22px 'Chakra Petch','Barlow Condensed',Impact,sans-serif;letter-spacing:1px;text-transform:uppercase}
+    p{margin:0;color:#cfcbe3;font-size:11px;line-height:1.8}
+    .rule{height:1px;margin:16px 0 12px;background:linear-gradient(90deg,var(--mint),#ffffff12)}
+    .keys{display:grid;gap:7px;color:#bdb8d6;font-size:9.5px}
+    .key{display:inline-block;margin-right:4px;padding:2px 6px;border:1px solid #ffffff55;border-bottom-width:2px;color:var(--lime);font-size:9px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0 4px}
+    .stat{padding:10px;border-radius:12px;background:#ffffff0a;border:1px solid #ffffff14}
+    .stat small{display:block;font-size:8px;letter-spacing:2px;color:var(--muted)}
+    .stat b{font:800 26px 'Chakra Petch','Barlow Condensed',Impact,sans-serif}
+    .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:18px}
+    .cta{display:inline-flex;align-items:center;gap:12px;padding:12px 22px;border:0;border-radius:12px;background:linear-gradient(135deg,#e8f75a,#46f0d0);color:var(--ink);box-shadow:0 8px 30px #46f0d055;font:800 20px 'Chakra Petch','Barlow Condensed',Impact,sans-serif;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+    .cta:hover{transform:translateY(-1px);box-shadow:0 10px 36px #46f0d088}
+    .ghost{padding:10px 13px;border-radius:10px;border:1px solid rgba(70,240,208,.45);background:rgba(11,12,31,.7);backdrop-filter:blur(8px);color:var(--mint);text-decoration:none;font:500 10px 'DM Mono',monospace;letter-spacing:1px;cursor:pointer}
+    .ghost:hover{background:var(--mint);color:var(--ink)}
+    .note{margin-top:12px;color:#8e89a8;font-size:8.5px;letter-spacing:1px}
+    .portal{position:absolute;z-index:4;top:12px;right:14px}
+    .sound{position:absolute;z-index:4;top:12px;right:118px}
+    /* Hangar */
+    .hangar{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:rgba(5,6,15,.55);border:1px solid rgba(255,255,255,.08)}
+    .hangar-top{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:center}
+    #preview{width:200px;height:170px;border-radius:14px;background:radial-gradient(circle at 50% 55%,#2a1f6a,#07081a 72%);border:1px solid rgba(255,255,255,.1)}
+    .ship-name{font:900 30px/.9 'Chakra Petch','Barlow Condensed',Impact,sans-serif;text-transform:uppercase}
+    .ship-role{font-size:9px;letter-spacing:2px;color:var(--mint);text-transform:uppercase;margin:4px 0 6px}
+    .bars{display:grid;gap:5px;margin-top:8px}
+    .bar{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;font-size:8.5px;color:var(--muted);letter-spacing:1px}
+    .bar i{display:block;height:5px;background:#ffffff14;position:relative}
+    .bar i b{position:absolute;inset:0 auto 0 0;background:var(--mint)}
+    .label{font-size:8.5px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+    .chassis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+    .chassis button{padding:8px 6px;border-radius:10px;border:1px solid #ffffff22;background:#ffffff08;color:var(--text);font:800 15px 'Chakra Petch','Barlow Condensed',Impact,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+    .chassis button small{display:block;font:400 8px 'DM Mono',monospace;letter-spacing:1px;color:var(--muted);text-transform:none;margin-top:2px}
+    .chassis button[aria-pressed="true"]{border-color:var(--lime);background:#e4f66a1a;box-shadow:inset 0 0 0 1px var(--lime)}
+    .row{display:flex;flex-wrap:wrap;gap:7px}
+    .swatch{width:28px;height:28px;border-radius:50%;border:2px solid #ffffff33;cursor:pointer;box-shadow:inset 0 0 0 3px #0b0c1f}
+    .swatch[aria-pressed="true"]{border-color:#fff;outline:2px solid var(--lime);outline-offset:2px}
+    .chip{padding:6px 10px;border-radius:99px;border:1px solid #ffffff2a;background:transparent;color:#d9d5ee;font:500 9.5px 'DM Mono',monospace;cursor:pointer}
+    .chip[aria-pressed="true"]{border-color:var(--mint);color:var(--mint);background:#46f0d014}
+    button:focus-visible,a:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+    @media(max-width:860px){.panel.wide{grid-template-columns:1fr;gap:16px}.chassis{grid-template-columns:repeat(2,1fr)}.sound{display:none}.stats{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.hangar-top{grid-template-columns:1fr}#preview{width:100%}}
+  </style>
+</head>
+<body>
+<main id="wrap">
+  <section id="screen" aria-label="Star Siege, a wave-based space shooter">
+    <canvas id="game" width="1280" height="720"></canvas>
+    <a class="ghost portal" href="../index.html">← PORTAL</a>
+    <button class="ghost sound" id="soundBtn" type="button" aria-pressed="true">♫ SOUND ON</button>
+
+    <div class="overlay" id="startScreen">
+      <div class="panel wide">
+        <div>
+          <div class="eyebrow">Endless waves · Space shooter</div>
+          <h1>Star<br><span>Siege</span></h1>
+          <p>An open sector teeming with asteroids, warships and colossal bosses. Aim and fire by hand, grab random loot and rebuild your ship one upgrade at a time… collect all 40 and it becomes <b style="color:var(--gold)">invincible</b>.</p>
+          <div class="rule"></div>
+          <div class="keys">
+            <div><span class="key">WASD</span> move · <span class="key">SPACE</span> dash</div>
+            <div><span class="key">MOUSE</span> aim · <span class="key">CLICK</span> fire · <span class="key">F</span> auto-fire</div>
+            <div><span class="key">← ↑ → ↓</span> aim and fire without a mouse</div>
+            <div><span class="key">PAD</span> left stick move · right stick aim and fire · A dash</div>
+            <div><span class="key">TOUCH</span> left side move · right side aim and fire · quick tap = dash</div>
+            <div><span class="key">P</span> pause · <span class="key">M</span> sound</div>
+          </div>
+          <div class="actions">
+            <button class="cta" id="startBtn" type="button"><span>Launch</span><span>↗</span></button>
+            <a class="ghost" href="../index.html">← PORTAL</a>
+          </div>
+          <div class="note" id="bestNote">BEST: —</div>
+        </div>
+        <div class="hangar" aria-label="Hangar: customise your ship">
+          <div class="hangar-top">
+            <canvas id="preview" width="400" height="340" aria-label="Preview of your ship"></canvas>
+            <div>
+              <div class="label">Hangar</div>
+              <div class="ship-name" id="shipName">Falcon</div>
+              <div class="ship-role" id="shipRole">All-rounder</div>
+              <p id="shipDesc" style="font-size:10px"></p>
+              <div class="bars" id="shipBars"></div>
+            </div>
+          </div>
+          <div><div class="label">Chassis</div><div class="chassis" id="chassisPick"></div></div>
+          <div><div class="label">Paint</div><div class="row" id="paintPick"></div></div>
+          <div><div class="label">Engine trail</div><div class="row" id="trailPick"></div></div>
+          <div><div class="label">Hull pattern</div><div class="row" id="patternPick"></div></div>
+          <p style="font-size:9px;color:#8e89a8">Any upgrades you find will build on this design.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="pauseScreen" hidden>
+      <div class="panel" style="text-align:center">
+        <div class="eyebrow">Systems on standby</div>
+        <h2>Paused</h2>
+        <p id="pauseInfo">—</p>
+        <div class="actions" style="justify-content:center">
+          <button class="cta" id="resumeBtn" type="button">Resume</button>
+          <button class="ghost" id="quitBtn" type="button">BACK TO HANGAR</button>
+          <a class="ghost" href="../index.html">← PORTAL</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overScreen" hidden>
+      <div class="panel">
+        <div class="eyebrow" id="overEyebrow">Ship destroyed</div>
+        <h2>Siege<br><span style="color:var(--pink)">over</span></h2>
+        <div class="stats">
+          <div class="stat"><small>WAVE</small><b id="oWave">0</b></div>
+          <div class="stat"><small>SCORE</small><b id="oScore">0</b></div>
+          <div class="stat"><small>UPGRADES</small><b id="oUps">0/40</b></div>
+          <div class="stat"><small>BEST</small><b id="oBest">0</b></div>
+        </div>
+        <p id="overText">—</p>
+        <div class="actions">
+          <button class="cta" id="retryBtn" type="button"><span>Play again</span><span>↻</span></button>
+          <button class="ghost" id="hangarBtn" type="button">CHANGE SHIP</button>
+          <a class="ghost" href="../index.html">← PORTAL</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="game.js" defer></script>
+</body>
+</html>

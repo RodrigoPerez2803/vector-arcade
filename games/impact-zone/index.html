@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#07090d">
+  <title>Impact Zone — Vector Arcade</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Barlow+Condensed:wght@700;800;900&family=DM+Mono:wght@400;500&display=swap');
+    :root{--ink:#07090d;--text:#f4f1ea;--muted:#9aa3a8;--coral:#f07a5a;--mint:#7ce0bd;--gold:#ffd166;--blood:#ff4f4f}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--text);font-family:'DM Mono',monospace;user-select:none;-webkit-user-select:none}
+    #wrap{width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 40%,#1c1410,#07090d 72%)}
+    #screen{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);overflow:hidden;box-shadow:0 0 90px #000}
+    #game{display:block;width:100%;height:100%}
+    #screen.playing #game{cursor:none}
+    #screen.playing .portal{display:none}
+    .overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:radial-gradient(ellipse at center,rgba(20,10,6,.72),rgba(4,5,8,.92));backdrop-filter:blur(4px);overflow:auto}
+    .overlay[hidden]{display:none}
+    .panel{position:relative;width:min(680px,96%);padding:30px 34px 26px;border-radius:20px;background:linear-gradient(150deg,rgba(60,30,20,.55),rgba(8,9,14,.9) 65%);border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 90px #000c}
+    .panel:before{content:'';position:absolute;inset:-1px;border-radius:20px;padding:1px;background:linear-gradient(135deg,#f07a5aaa,transparent 45%,#ffd16655);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+    .panel.wide{width:min(1020px,98%);display:grid;grid-template-columns:1.1fr .9fr;gap:28px}
+    .eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--coral)}
+    h1{margin:12px 0 10px;font:900 clamp(48px,7vw,92px)/.82 'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;letter-spacing:-1px}
+    h1 span{color:var(--coral);text-shadow:0 0 30px #f07a5a66}
+    h2{margin:8px 0 10px;font:700 clamp(32px,4.6vw,52px)/.95 'Chakra Petch',sans-serif;text-transform:uppercase}
+    h3{margin:0 0 8px;font:700 13px 'Chakra Petch',sans-serif;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+    p{margin:0;color:#d6d0c6;font-size:11px;line-height:1.8}
+    .rule{height:1px;margin:16px 0 12px;background:linear-gradient(90deg,var(--coral),transparent)}
+    .keys{display:grid;gap:7px;color:#c9c2b6;font-size:9.5px}
+    .key{display:inline-block;margin-right:4px;padding:2px 6px;border-radius:5px;border:1px solid #ffffff44;border-bottom-width:2px;color:var(--gold);font-size:9px}
+    .actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:18px}
+    .cta{display:inline-flex;align-items:center;gap:12px;padding:12px 22px;border:0;border-radius:12px;background:linear-gradient(135deg,#ffb35a,#f0503a);color:#140a06;box-shadow:0 8px 30px #f0503a55;font:700 18px 'Chakra Petch',sans-serif;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+    .cta:hover{transform:translateY(-1px);box-shadow:0 10px 36px #f0503a88}
+    .ghost{padding:10px 13px;border-radius:10px;border:1px solid rgba(240,122,90,.5);background:rgba(10,10,14,.7);color:var(--coral);text-decoration:none;font:500 10px 'DM Mono',monospace;letter-spacing:1px;cursor:pointer}
+    .ghost:hover{background:var(--coral);color:var(--ink)}
+    .opts{display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.07)}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{padding:7px 11px;border-radius:99px;border:1px solid #ffffff2a;background:transparent;color:#ddd6ca;font:600 11px 'Chakra Petch',sans-serif;cursor:pointer}
+    .chip small{display:block;font:400 8px 'DM Mono',monospace;color:var(--muted)}
+    .chip[aria-pressed="true"]{border-color:var(--coral);color:#fff;background:#f07a5a22}
+    input[type=range]{width:100%;accent-color:var(--coral)}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+    .stat{padding:10px;border-radius:12px;background:#ffffff0a;border:1px solid #ffffff12}
+    .stat small{display:block;font-size:8px;letter-spacing:2px;color:var(--muted)}
+    .stat b{font:700 24px 'Chakra Petch',sans-serif}
+    .loot{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .loot span{padding:5px 9px;border-radius:8px;font:600 10px 'Chakra Petch',sans-serif;background:#ffffff0d;border:1px solid currentColor}
+    .portal{position:absolute;z-index:4;top:12px;right:14px}
+    button:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+    @media(max-width:860px){.panel.wide{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<main id="wrap">
+  <section id="screen" aria-label="Impact Zone, first-person shooter">
+    <canvas id="game" width="1280" height="720"></canvas>
+    <a class="ghost portal" id="portalLink" href="../index.html">← PORTAL</a>
+
+    <div class="overlay" id="startScreen">
+      <div class="panel wide">
+        <div>
+          <div class="eyebrow">Primer Impulso presents</div>
+          <h1>Impact<br><span>zone</span></h1>
+          <p>Twelve sectors overrun by hostile machines. Six weapons, four colossal bosses and random loot that makes every run different. Find each sector's keycard… and get out alive.</p>
+          <div class="rule"></div>
+          <div class="keys">
+            <div><span class="key">WASD</span> move · <span class="key">SHIFT</span> sprint · <span class="key">Q</span> dash</div>
+            <div><span class="key">MOUSE</span> aim · <span class="key">CLICK</span> or <span class="key">SPACE</span> fire</div>
+            <div><span class="key">R</span> reload · <span class="key">1–6</span> / <span class="key">WHEEL</span> switch weapon</div>
+            <div><span class="key">CONTROLLER</span> sticks · RT fire · X reload · Y/LB/RB weapon · A dash</div>
+            <div><span class="key">P</span><span class="key">ESC</span> pause · <span class="key">N</span> music</div>
+          </div>
+          <div class="actions">
+            <button class="cta" id="startBtn" type="button">Into battle ↗</button>
+            <a class="ghost" href="../index.html">← PORTAL</a>
+          </div>
+          <p id="bestNote" style="margin-top:12px;font-size:9px;color:var(--muted)"></p>
+        </div>
+        <div class="opts">
+          <div><h3>Difficulty</h3><div class="chips" id="diffPick"></div></div>
+          <div><h3>Graphics quality</h3><div class="chips" id="qualityPick"></div><p style="font-size:9px;color:var(--muted);margin-top:6px">Lowers itself automatically if the game stutters.</p></div>
+          <div><h3>Mouse sensitivity <span id="sensOut"></span></h3><input type="range" id="sens" min="0.4" max="2.2" step="0.1"></div>
+          <div><h3>Music</h3><div class="chips"><button class="chip" id="musicChip" type="button">Music</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="introScreen" hidden>
+      <div class="panel" style="text-align:center">
+        <div class="eyebrow" id="introEyebrow">Sector 01</div>
+        <h2 id="introTitle">Industrial Complex</h2>
+        <p id="introText">—</p>
+        <div class="actions" style="justify-content:center"><button class="cta" id="introBtn" type="button">Deploy</button></div>
+        <p style="margin-top:10px;font-size:9px;color:var(--muted)">Click to capture the mouse</p>
+      </div>
+    </div>
+
+    <div class="overlay" id="pauseScreen" hidden>
+      <div class="panel" style="text-align:center">
+        <div class="eyebrow">Systems on standby</div>
+        <h2>Paused</h2>
+        <p id="pauseInfo">—</p>
+        <div class="actions" style="justify-content:center">
+          <button class="cta" id="resumeBtn" type="button">Resume</button>
+          <button class="ghost" id="menuBtn" type="button">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="endScreen" hidden>
+      <div class="panel">
+        <div class="eyebrow" id="endEyebrow">Sector cleared</div>
+        <h2 id="endTitle">—</h2>
+        <div class="stats">
+          <div class="stat"><small>TIME</small><b id="sTime">0</b></div>
+          <div class="stat"><small>KILLS</small><b id="sKills">0</b></div>
+          <div class="stat"><small>ACCURACY</small><b id="sAcc">0</b></div>
+          <div class="stat"><small>SCORE</small><b id="sScore">0</b></div>
+        </div>
+        <p id="endText">—</p>
+        <div class="loot" id="endLoot"></div>
+        <div class="actions">
+          <button class="cta" id="endBtn" type="button">Next sector ↗</button>
+          <button class="ghost" id="endMenuBtn" type="button">MAIN MENU</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="./game.js" defer></script>
+</body>
+</html>

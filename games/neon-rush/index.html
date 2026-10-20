@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#120d22">
+  <title>Neon Rush — Sunset Drive</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap');
+    :root{--ink:#120d22;--paper:#fbf6ff;--muted:#a9a1c2;--sun:#ffb35a;--coral:#ff6f7d;--mint:#46f0d0;--glass:rgba(22,16,40,.78)}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:'Rajdhani',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+    #wrap{width:100%;height:100%;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 30%,#2b1d48,#0b0816 75%)}
+    #screen{position:relative;width:min(100vw,177.78vh);height:min(100vh,56.25vw);overflow:hidden;box-shadow:0 0 90px #000}
+    #c{display:block;width:100%;height:100%}
+    .overlay{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;background:linear-gradient(180deg,rgba(18,12,36,.55),rgba(10,7,20,.88));backdrop-filter:blur(3px);overflow:auto}
+    .overlay[hidden]{display:none}
+    .panel{position:relative;width:min(620px,96%);padding:30px 34px 26px;border-radius:22px;background:var(--glass);border:1px solid rgba(255,255,255,.12);box-shadow:0 30px 90px rgba(0,0,0,.6)}
+    .panel.wide{width:min(1100px,98%);display:grid;grid-template-columns:1.05fr .95fr;gap:24px;padding:24px}
+    .eyebrow{font:500 10px 'DM Mono',monospace;letter-spacing:4px;text-transform:uppercase;color:var(--sun)}
+    h1{margin:10px 0 8px;font:400 clamp(64px,9vw,118px)/.8 'Bebas Neue',Impact,sans-serif;letter-spacing:2px}
+    h1 span{background:linear-gradient(180deg,#ffd27a,#ff6f7d 60%,#c04fd8);-webkit-background-clip:text;background-clip:text;color:transparent}
+    h2{margin:6px 0 10px;font:400 clamp(40px,5vw,64px)/.9 'Bebas Neue',Impact,sans-serif;letter-spacing:1px}
+    h3{margin:0 0 7px;font:700 12px 'Rajdhani',sans-serif;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+    p{margin:0;color:#ddd5ee;font-size:15px;line-height:1.5}
+    .rule{height:1px;margin:16px 0 12px;background:linear-gradient(90deg,var(--sun),transparent)}
+    .keys{display:grid;gap:6px;color:#cfc6e4;font-size:14px}
+    .key{display:inline-block;margin-right:3px;padding:1px 7px;border-radius:6px;border:1px solid #ffffff44;border-bottom-width:2px;color:var(--sun);font:500 11px 'DM Mono',monospace}
+    .actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+    .cta{padding:13px 24px;border:0;border-radius:14px;background:linear-gradient(135deg,#ffd27a,#ff6f7d);color:#2a1020;font:400 24px 'Bebas Neue',Impact,sans-serif;letter-spacing:2px;cursor:pointer;box-shadow:0 10px 30px rgba(255,111,125,.35)}
+    .cta:hover{transform:translateY(-1px)}
+    .ghost{padding:11px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.05);color:var(--paper);text-decoration:none;font:600 14px 'Rajdhani',sans-serif;letter-spacing:1px;cursor:pointer}
+    .ghost:hover{background:rgba(255,255,255,.14)}
+    .note{margin-top:12px;color:var(--muted);font:400 11px 'DM Mono',monospace}
+    .portal{position:absolute;z-index:6;top:14px;right:16px}
+    #screen.playing .portal{display:none}
+    #screen.playing #c{cursor:none}
+    /* Garage */
+    .preview{display:flex;flex-direction:column;gap:10px}
+    #preview{width:100%;aspect-ratio:16/10;border-radius:16px;background:#0d0a1a;border:1px solid rgba(255,255,255,.08)}
+    .view-toggle{display:flex;gap:6px}
+    .credits{display:flex;justify-content:space-between;align-items:center;font:400 26px 'Bebas Neue',sans-serif;letter-spacing:1px}
+    .credits b{color:var(--sun)}
+    .tabs{display:flex;gap:6px;margin-bottom:12px}
+    .tab{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:transparent;color:var(--muted);font:700 14px 'Rajdhani',sans-serif;letter-spacing:2px;text-transform:uppercase;cursor:pointer}
+    .tab[aria-selected="true"]{background:rgba(255,179,90,.14);border-color:var(--sun);color:var(--paper)}
+    .opts[hidden]{display:none}
+    .opts{display:flex;flex-direction:column;gap:12px;max-height:min(58vh,520px);overflow:auto;padding-right:4px}
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{padding:6px 11px;border-radius:99px;border:1px solid #ffffff30;background:transparent;color:#e6def5;font:600 14px 'Rajdhani',sans-serif;cursor:pointer}
+    .chip[aria-pressed="true"]{border-color:var(--sun);background:rgba(255,179,90,.16);color:#fff}
+    .swatch{width:30px;height:30px;border-radius:50%;border:2px solid #ffffff30;cursor:pointer}
+    .swatch[aria-pressed="true"]{border-color:#fff;outline:2px solid var(--sun);outline-offset:2px}
+    .plate{width:150px;padding:7px 10px;border-radius:8px;border:1px solid #ffffff40;background:#f6f2e8;color:#1b1b2a;font:700 18px 'DM Mono',monospace;text-transform:uppercase;letter-spacing:2px}
+    .perf{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.05)}
+    .perf small{display:block;color:var(--muted);font-size:13px}
+    .bars{display:flex;gap:4px;margin-top:5px}
+    .bars i{width:30px;height:7px;border-radius:4px;background:#ffffff1c}
+    .bars i.on{background:linear-gradient(90deg,#ffd27a,#ff6f7d)}
+    .buy{padding:8px 12px;border-radius:10px;border:1px solid var(--sun);background:transparent;color:var(--sun);font:700 14px 'Rajdhani',sans-serif;cursor:pointer;white-space:nowrap}
+    .buy:disabled{opacity:.4;cursor:default}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+    .stat{padding:10px;border-radius:12px;background:#ffffff0c;border:1px solid #ffffff14}
+    .stat small{display:block;font:400 9px 'DM Mono',monospace;letter-spacing:2px;color:var(--muted)}
+    .stat b{font:400 30px 'Bebas Neue',sans-serif;letter-spacing:1px}
+    .touch{display:none;position:absolute;z-index:3;inset:auto 12px 12px 12px;justify-content:space-between;pointer-events:none}
+    .touch div{display:flex;gap:8px}
+    .touch button{width:70px;height:62px;border-radius:14px;border:1px solid #ffffff40;background:rgba(18,12,36,.6);color:#fff;font:400 22px 'Bebas Neue',sans-serif;pointer-events:auto;touch-action:none}
+    #screen.playing .touch.on{display:flex}
+    button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+    @media(max-width:860px){.panel.wide{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:60px}}
+  </style>
+</head>
+<body>
+<main id="wrap">
+  <section id="screen" aria-label="Neon Rush, a third-person racing game">
+    <canvas id="c" width="1280" height="720"></canvas>
+    <a class="ghost portal" href="../index.html">← PORTAL</a>
+
+    <div class="overlay" id="menu">
+      <div class="panel">
+        <div class="eyebrow">Vector Arcade · Open road</div>
+        <h1>Neon<br><span>Rush</span></h1>
+        <p>Five stages, from a coastal sunset to the city at midnight. Reach each checkpoint before the clock runs out, skim past traffic for near-miss bonuses and earn credits to tune your car in the garage.</p>
+        <div class="rule"></div>
+        <div class="keys">
+          <div><span class="key">↑ W</span> accelerate · <span class="key">↓ S</span> brake · <span class="key">← → A D</span> steer</div>
+          <div><span class="key">SHIFT</span> <span class="key">SPACE</span> nitro · <span class="key">ESC</span> <span class="key">P</span> pause · <span class="key">M</span> music</div>
+          <div><span class="key">CONTROLLER</span> stick steer · RT accelerate · LT brake · A nitro · START pause</div>
+        </div>
+        <div class="actions">
+          <button class="cta" id="playBtn" type="button">Start engine ↗</button>
+          <button class="ghost" id="garageBtn" type="button">GARAGE</button>
+          <button class="ghost" id="musicBtn" type="button">♫ MUSIC ON</button>
+          <a class="ghost" href="../index.html">← CHANGE GAME</a>
+        </div>
+        <div class="note" id="bestNote"></div>
+      </div>
+    </div>
+
+    <div class="overlay" id="garage" hidden>
+      <div class="panel wide">
+        <div class="preview">
+          <div class="eyebrow">Garage</div>
+          <canvas id="preview" width="880" height="550"></canvas>
+          <div class="view-toggle">
+            <button class="chip" type="button" data-view="side" aria-pressed="true">Side</button>
+            <button class="chip" type="button" data-view="rear" aria-pressed="false">Rear</button>
+          </div>
+          <div class="credits"><span>Credits</span><b id="credits">0</b></div>
+        </div>
+        <div>
+          <div class="tabs" role="tablist">
+            <button class="tab" type="button" role="tab" data-tab="look" aria-selected="true">Styling</button>
+            <button class="tab" type="button" role="tab" data-tab="perf" aria-selected="false">Performance</button>
+          </div>
+          <div class="opts" id="lookOpts"></div>
+          <div class="opts" id="perfOpts" hidden></div>
+          <div class="actions">
+            <button class="cta" id="garagePlay" type="button">Hit the road ↗</button>
+            <button class="ghost" id="garageBack" type="button">BACK</button>
+            <a class="ghost" href="../index.html">← PORTAL</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="pause" hidden>
+      <div class="panel" style="text-align:center">
+        <div class="eyebrow">Engine idling</div>
+        <h2>Paused</h2>
+        <div class="actions" style="justify-content:center">
+          <button class="cta" id="resumeBtn" type="button">Resume</button>
+          <button class="ghost" id="quitBtn" type="button">MENU</button>
+          <a class="ghost" href="../index.html">← PORTAL</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="end" hidden>
+      <div class="panel">
+        <div class="eyebrow" id="endEyebrow">End of the road</div>
+        <h2 id="endTitle">Out of time</h2>
+        <div class="stats">
+          <div class="stat"><small>DISTANCE</small><b id="eDist">0</b></div>
+          <div class="stat"><small>STAGES</small><b id="eStage">0</b></div>
+          <div class="stat"><small>OVERTAKES</small><b id="ePass">0</b></div>
+          <div class="stat"><small>SCORE</small><b id="eScore">0</b></div>
+        </div>
+        <p id="endText">—</p>
+        <div class="actions">
+          <button class="cta" id="againBtn" type="button">Race again ↻</button>
+          <button class="ghost" id="endGarage" type="button">GARAGE</button>
+          <button class="ghost" id="endMenu" type="button">MENU</button>
+          <a class="ghost" href="../index.html">← PORTAL</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="touch" id="touch">
+      <div><button data-k="left" aria-label="Steer left">◀</button><button data-k="right" aria-label="Steer right">▶</button></div>
+      <div><button data-k="nitro">NITRO</button><button data-k="brake">BRAKE</button><button data-k="gas" aria-label="Accelerate">ACCEL</button></div>
+    </div>
+  </section>
+</main>
+<script src="./game.js" defer></script>
+</body>
+</html>
