@@ -1,4 +1,5 @@
-# Only the games/ folder is published to GitHub. Everything else stays on this computer.
+# Only the games/ folder and this README are published to GitHub. Everything else stays on this computer.
 /*
 !/games/
 !/.gitignore
+!/README.md
